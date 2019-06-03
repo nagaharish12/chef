@@ -1,32 +1,35 @@
 #
-cookbook Name:: apache
+# cookbook Name:: apache
 # Recipe:: server
 #
 # Copyright (c) 2019 The Authors, All Rights Reserved.
 
-
+# notifies :action, 'resource[name]', :timer
+# subscribes :action, 'resource[name]', :timer
+#
+# :before, :delayed, :immediately
 
 package 'httpd' do
   action :install
 end
 
-bash "inline script"  do
-  user "root"
-  code "mkdir -p /var/www/mysites/ && chown -R apache /var/www/mysites/"
+#bash "inline script"  do
+#  user "root"
+#  code "mkdir -p /var/www/mysites/ && chown -R apache /var/www/mysites/"
 #  not_if '[ -d /var/www/mysites/ ]'
-  not_if do
-    File.directory?('/var/www/mysites/')
-  end
-end
+#  not_if do
+#    File.directory?('/var/www/mysites/')
+#  end
+#end
 
-execute "run a script" do
-  user "root"
-  command <<-EOH
-  mkdir -p /var/www/mysites/ /
-  chown -R apache /var/www/mysites/
-  EOH
-  not_if
-end
+#execute "run a script" do
+#  user "root"
+#  command <<-EOH
+#  mkdir -p /var/www/mysites/ /
+#  chown -R apache /var/www/mysites/
+#  EOH
+#  not_if
+#end
 
 #execute "run script" do
 #  user "root"
@@ -34,10 +37,10 @@ end
 #  not_if
 #end
 
-directory "/var/www/mysites/" do
-  owner "apache"
-  recursive true
-end
+#directory "/var/www/mysites/" do
+#  owner "apache"
+#  recursive true
+#end
 
 #cookbook_file '/var/www/html/index.html' do
 #  source 'index.html'
@@ -49,10 +52,12 @@ end
 
 template '/var/www/html/index.html' do
   source 'index.html.erb'
+#  notifies :restart, 'service[httpd]', :immediately
   action :create
 end
 
 service 'httpd' do
   action [ :enable, :start ]
+  subscribes :restart, 'template[/var/www/html/index.html]', :immediately
 end
 
